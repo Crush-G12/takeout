@@ -17,6 +17,7 @@ import sun.security.provider.MD5;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.time.LocalDateTime;
 
 @Slf4j
 @RestController
@@ -59,4 +60,29 @@ public class EmployeeController {
         return R.success(one);
     }
 
+    @PostMapping("/logout")
+    public R<String> logout(HttpServletRequest request){
+        HttpSession session = request.getSession();
+        session.removeAttribute("employee");
+        return R.success("退出成功");
+    }
+
+    @PostMapping
+    public R<String> save(@RequestBody Employee employee,HttpServletRequest request){
+        log.info("保存员工信息"+ employee.toString());
+        //封装参数
+        employee.setCreateTime(LocalDateTime.now());
+        Long empId= (Long)request.getSession().getAttribute("employee");
+        employee.setCreateUser(empId);
+        employee.setUpdateTime(LocalDateTime.now());
+        employee.setUpdateUser(empId);
+        //设置初始密码吗
+        String password = DigestUtils.md5DigestAsHex("123456".getBytes());
+        employee.setPassword(password);
+
+        //保存到数据库中
+        employeeService.save(employee);
+
+        return R.success("保存成功");
+    }
 }
