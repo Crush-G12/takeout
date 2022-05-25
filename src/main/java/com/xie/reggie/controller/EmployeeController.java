@@ -2,22 +2,23 @@ package com.xie.reggie.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.xie.reggie.comon.R;
 import com.xie.reggie.entity.Employee;
 import com.xie.reggie.service.EmployeeService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.apache.tomcat.util.security.MD5Encoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.DigestUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import sun.security.krb5.internal.PAEncTSEnc;
 import sun.security.provider.MD5;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -84,5 +85,46 @@ public class EmployeeController {
         employeeService.save(employee);
 
         return R.success("保存成功");
+    }
+
+    @GetMapping("/page")
+    public R<Page> page(int page,int pageSize,String name){
+        //log.info("page= {} ,pageSize= {},name = {}",page,pageSize,name);
+        //分页构造器
+        Page pageInfo = new Page(page,pageSize);
+        //条件构造器
+        LambdaQueryWrapper<Employee> queryWrapper = new LambdaQueryWrapper<>();
+        //查询条件
+        queryWrapper.like(StringUtils.isNotEmpty(name),Employee::getName,name);
+        queryWrapper.orderByDesc(Employee::getUpdateTime);
+        //执行查询,page对象会被改造，不用返回值
+        employeeService.page(pageInfo,queryWrapper);
+        return R.success((pageInfo));
+    }
+
+    /**
+     * 通用的更新方法
+     * @param employee
+     * @param request
+     * @return
+     */
+    @PutMapping
+    public R<String> update(@RequestBody Employee employee,HttpServletRequest request){
+        log.info("员工信息：" + employee.toString());
+        employee.setUpdateTime(LocalDateTime.now());
+        Long emp = (Long) request.getSession().getAttribute("employee");
+        employee.setUpdateUser(emp);
+        employeeService.updateById(employee);
+        return R.success("修改成功");
+    }
+
+    @GetMapping("{id}")
+    public R<Employee> edit(@PathVariable Long id){
+        //log.info("访问编辑功能");
+        LambdaQueryWrapper<Employee> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Employee::getId,id);
+        Employee employee = employeeService.getOne(queryWrapper);
+
+        return R.success(employee);
     }
 }
