@@ -72,11 +72,11 @@ public class EmployeeController {
     public R<String> save(@RequestBody Employee employee,HttpServletRequest request){
         log.info("保存员工信息"+ employee.toString());
         //封装参数
-        employee.setCreateTime(LocalDateTime.now());
+        //employee.setCreateTime(LocalDateTime.now());
         Long empId= (Long)request.getSession().getAttribute("employee");
-        employee.setCreateUser(empId);
-        employee.setUpdateTime(LocalDateTime.now());
-        employee.setUpdateUser(empId);
+        //employee.setCreateUser(empId);
+        //employee.setUpdateTime(LocalDateTime.now());
+        //employee.setUpdateUser(empId);
         //设置初始密码吗
         String password = DigestUtils.md5DigestAsHex("123456".getBytes());
         employee.setPassword(password);

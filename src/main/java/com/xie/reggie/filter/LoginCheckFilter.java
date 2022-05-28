@@ -2,6 +2,7 @@ package com.xie.reggie.filter;
 
 import com.alibaba.fastjson.JSON;
 import com.sun.org.apache.xpath.internal.functions.FuncFalse;
+import com.xie.reggie.comon.BaseContext;
 import com.xie.reggie.comon.R;
 import com.xie.reggie.entity.Employee;
 import lombok.extern.slf4j.Slf4j;
@@ -48,13 +49,16 @@ public class LoginCheckFilter implements Filter {
         }
 
         //判断是否登录
-        //log.info("需要处理的请求："+requestURI);
-        if (request.getSession().getAttribute("employee") == null){
+        Long id = (Long) request.getSession().getAttribute("employee");
+        if (id == null){
             //如果未登录，则通过输出流向客户端响应数据
-            //log.info((String) request.getSession().getAttribute("employee"));
             response.getWriter().write(JSON.toJSONString(R.error("NOTLOGIN")));
             return;
         }
+        //将用户id保存到ThreadLocal中
+        BaseContext.setId(id);
+
+        //如果已经登录，直接放行
         filterChain.doFilter(request,response);
         return;
     }
