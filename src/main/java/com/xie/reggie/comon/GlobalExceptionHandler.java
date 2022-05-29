@@ -37,4 +37,14 @@ public class GlobalExceptionHandler {
     }
 
 
+    /**
+     * 拦截CustomException异常
+     * @return
+     */
+    @ExceptionHandler(CustomException.class)
+    public R<String> exceptionHandler(CustomException exception){
+
+        return R.error(exception.getMessage());
+    }
+
 }
