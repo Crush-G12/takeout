@@ -1,11 +1,13 @@
 package com.xie.reggie.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.xie.reggie.comon.R;
 import com.xie.reggie.entity.Category;
 import com.xie.reggie.service.CategoryService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.OutputBuffer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -54,5 +56,22 @@ public class CategoryController {
         categoryService.updateById(category);
 
         return R.success("修改成功");
+    }
+
+    /**
+     * 查询菜品分类数据
+     * @param category
+     * @return
+     */
+    @GetMapping("/list")
+    public R<List<Category>> list(Category category){
+        LambdaQueryWrapper<Category> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(category.getType()!=null,Category::getType,category.getType());
+        //增加排序条件
+        queryWrapper.orderByAsc(Category::getSort).orderByAsc(Category::getUpdateTime);
+        //进行查询
+        List<Category> list = categoryService.list(queryWrapper);
+
+        return R.success(list);
     }
 }
