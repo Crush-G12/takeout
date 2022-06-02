@@ -85,4 +85,21 @@ public class DishController {
 
         return R.success(dishDtoPage);
     }
+
+    @GetMapping("/{id}")
+    public R<DishDto> queryById(@PathVariable Long id){
+
+        //根据id查询DishDto对象
+        DishDto dishDto = dishService.getByIdWithFlavor(id);
+
+        return R.success(dishDto);
+    }
+
+    @PutMapping
+    public R<String> updateDish(@RequestBody DishDto dishDto){
+        //修改涉及两张表的操作
+        dishService.updateByIdWithFlavor(dishDto);
+
+        return R.success("修改菜品成功");
+    }
 }
