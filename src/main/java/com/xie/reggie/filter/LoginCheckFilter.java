@@ -35,8 +35,11 @@ public class LoginCheckFilter implements Filter {
         String[] urls = new String[]{
           "/backend/**",
           "/front/**",
+          "/common/**",
           "/employee/login",
           "/employee/logout",
+          "/user/sendMsg",
+          "/user/login"
         };
         //进行路径匹配
         String requestURI = request.getRequestURI();
@@ -48,15 +51,24 @@ public class LoginCheckFilter implements Filter {
             return;
         }
 
-        //判断是否登录
+        //判断是否登录（后台系统）
         Long id = (Long) request.getSession().getAttribute("employee");
         if (id == null){
-            //如果未登录，则通过输出流向客户端响应数据
-            response.getWriter().write(JSON.toJSONString(R.error("NOTLOGIN")));
-            return;
+            //判断是否登录（用户系统）
+            Long userId = (Long) request.getSession().getAttribute("user");
+            if (userId == null){
+                //如果未登录，则通过输出流向客户端响应数据
+                response.getWriter().write(JSON.toJSONString(R.error("NOTLOGIN")));
+                return;
+            }
+            //将用户id保存到ThreadLocal中
+            BaseContext.setId(userId);
         }
         //将用户id保存到ThreadLocal中
-        BaseContext.setId(id);
+        if(id != null){
+            BaseContext.setId(id);
+        }
+
 
         //如果已经登录，直接放行
         filterChain.doFilter(request,response);

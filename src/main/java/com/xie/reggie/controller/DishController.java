@@ -7,6 +7,7 @@ import com.xie.reggie.comon.R;
 import com.xie.reggie.dto.DishDto;
 import com.xie.reggie.entity.Category;
 import com.xie.reggie.entity.Dish;
+import com.xie.reggie.entity.DishFlavor;
 import com.xie.reggie.service.CategoryService;
 import com.xie.reggie.service.DishFlavorService;
 import com.xie.reggie.service.DishService;
@@ -14,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.web.bind.annotation.*;
 import sun.security.krb5.internal.PAEncTSEnc;
 
@@ -34,6 +36,7 @@ public class DishController {
 
     @Autowired
     private CategoryService categoryService;
+
 
     @PostMapping
     public R<String> saveDish(@RequestBody DishDto dishDto){
@@ -103,7 +106,7 @@ public class DishController {
         return R.success("修改菜品成功");
     }
 
-    @GetMapping("/list")
+    /*@GetMapping("/list")
     public R<List<Dish>> list(Dish dish){
         LambdaQueryWrapper<Dish> queryWrapper = new LambdaQueryWrapper<>();
         List<Dish> dishList = null;
@@ -115,6 +118,37 @@ public class DishController {
         }
 
         return R.success(dishList);
+    }*/
+
+    @GetMapping("/list")
+    public R<List<DishDto>> list(Dish dish){
+        LambdaQueryWrapper<Dish> queryWrapper = new LambdaQueryWrapper<>();
+        List<Dish> dishList = null;
+        if(dish.getCategoryId() != null){
+            queryWrapper.eq(Dish::getCategoryId,dish.getCategoryId());
+            queryWrapper.eq(Dish::getStatus,1);
+            queryWrapper.orderByAsc(Dish::getSort).orderByDesc(Dish::getUpdateTime);
+            dishList = dishService.list(queryWrapper);
+        }
+
+        List<DishDto> dishDtoList = new ArrayList<>();
+        for (Dish d : dishList) {
+            //获取口味
+            LambdaQueryWrapper<DishFlavor> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+            lambdaQueryWrapper.eq(DishFlavor::getDishId,d.getId());
+            List<DishFlavor> flavors = dishFlavorService.list(lambdaQueryWrapper);
+            //获取分类名称
+            Category category = categoryService.getById(d.getCategoryId());
+            String categoryName = category.getName();
+            //拷贝
+            DishDto dishDto = new DishDto();
+            BeanUtils.copyProperties(d,dishDto);
+            dishDto.setFlavors(flavors);
+            dishDto.setCategoryName(categoryName);
+            dishDtoList.add(dishDto);
+        }
+
+        return R.success(dishDtoList);
     }
 
 
